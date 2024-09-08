@@ -39,6 +39,10 @@ app.use(bodyParser.json());
 const storage = multer.memoryStorage(); // Store file in memory
 const upload = multer({ storage: storage });
 
+app.post("/", (req, res) => {
+  res.json({ message: "hello" }).send();
+});
+
 // Route to handle form submission
 app.post("/upload", upload.single("image"), async (req, res) => {
   try {
