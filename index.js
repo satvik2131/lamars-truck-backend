@@ -5,11 +5,11 @@ const bodyParser = require("body-parser");
 const Data = require("./models/datamodel");
 const cloudinary = require("cloudinary").v2;
 const { Readable } = require("stream");
-require("dotenv").config();
+require("dotenv").config(); // Ensure you have a .env file locally for development
 
 // Create Express app
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use PORT from environment variables or default to 3000
 
 // Cloudinary configuration
 cloudinary.config({
