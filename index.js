@@ -42,11 +42,11 @@ const storage = multer.memoryStorage(); // Store file in memory
 const upload = multer({ storage: storage });
 
 app.post("/", (req, res) => {
-  res.json({ message: "hello" }).send();
+  res.send("hoi");
 });
 
 // Route to handle form submission
-app.post("/upload", upload.single("image"), async (req, res) => {
+app.post("/api/truck/data", upload.single("image"), async (req, res) => {
   try {
     const { name, description } = req.body;
     const file = req.file;
@@ -94,7 +94,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 });
 
 // Route to fetch all data including the images
-app.get("/data", async (req, res) => {
+app.get("/api/truck/data", async (req, res) => {
   try {
     const data = await Data.find();
     res.json(data);
