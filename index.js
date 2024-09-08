@@ -11,8 +11,6 @@ require("dotenv").config(); // Ensure you have a .env file locally for developme
 const app = express();
 const PORT = process.env.PORT || 3000; // Use PORT from environment variables or default to 3000
 
-console.log(process.env.MONGODB_URI);
-
 // Cloudinary configuration
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
