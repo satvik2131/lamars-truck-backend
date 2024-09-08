@@ -6,6 +6,7 @@ const Data = require("./models/datamodel");
 const cloudinary = require("cloudinary").v2;
 const { Readable } = require("stream");
 require("dotenv").config(); // Ensure you have a .env file locally for development
+const cors = require("cors");
 
 // Create Express app
 const app = express();
@@ -34,6 +35,7 @@ mongoose
 // Body-parser middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors());
 
 // Set up Multer for file uploads
 const storage = multer.memoryStorage(); // Store file in memory
