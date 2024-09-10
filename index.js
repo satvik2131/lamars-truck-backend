@@ -37,57 +37,57 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
-// Set up Multer for file uploads
+// Set up Multer for multiple file uploads
 const storage = multer.memoryStorage(); // Store file in memory
 const upload = multer({ storage: storage });
 
-app.post("/", (req, res) => {
-  res.send("hoi");
-});
-
-// Route to handle form submission
-app.post("/api/truck/data", upload.single("image"), async (req, res) => {
+// Route to handle form submission for multiple image uploads
+app.post("/api/truck/data", upload.array("images", 10), async (req, res) => {
   try {
     const { name, description } = req.body;
-    const file = req.file;
+    const files = req.files;
 
-    if (!file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded" });
     }
 
-    // Convert buffer to stream for Cloudinary
-    const stream = Readable.from(file.buffer);
+    // Array to store image URLs
+    const imageUrls = [];
 
-    // Upload image to Cloudinary
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "image", folder: "uploads" },
-      async (error, result) => {
-        if (error) {
-          return res
-            .status(500)
-            .json({ message: "Failed to upload image to Cloudinary", error });
-        }
+    // Function to upload a single image to Cloudinary
+    const uploadImage = (file) => {
+      return new Promise((resolve, reject) => {
+        const stream = Readable.from(file.buffer);
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { resource_type: "image", folder: "uploads" },
+          (error, result) => {
+            if (error) {
+              return reject(error);
+            }
+            resolve(result.secure_url);
+          }
+        );
+        stream.pipe(uploadStream);
+      });
+    };
 
-        // Create a new document in the database
-        const newData = new Data({
-          name,
-          description,
-          imageUrl: result.secure_url, // Save the Cloudinary image URL
-        });
+    // Upload all images sequentially
+    for (const file of files) {
+      const imageUrl = await uploadImage(file);
+      imageUrls.push(imageUrl);
+    }
 
-        try {
-          await newData.save();
-          res
-            .status(201)
-            .json({ message: "Data successfully uploaded!", data: newData });
-        } catch (err) {
-          res.status(500).json({ message: "Failed to save data", error: err });
-        }
-      }
-    );
+    // Create a new document in the database with the array of image URLs
+    const newData = new Data({
+      name,
+      description,
+      imageUrls, // Store all Cloudinary image URLs
+    });
 
-    // Pipe the file buffer to Cloudinary upload stream
-    stream.pipe(uploadStream);
+    await newData.save();
+    res
+      .status(201)
+      .json({ message: "Data successfully uploaded!", data: newData });
   } catch (error) {
     res.status(500).json({ message: "Failed to upload data", error });
   }
